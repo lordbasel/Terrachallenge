@@ -55,7 +55,7 @@ resource "azurerm_network_security_group" "nsg" {
 }
 
 #Create NIC (Webserver)
-resource "azurerm_network_interface" "nic" {
+resource "azurerm_network_interface" "nic_ws" {
     name                    = "tc-nic-${var.webservername}"
     location                = azurerm_resource_group.rg.location
     resource_group_name     = azurerm_resource_group.rg.name
@@ -71,7 +71,7 @@ resource "azurerm_network_interface" "nic" {
 }
 
 #Create NIC (Jumpbox)
-resource "azurerm_network_interface" "nic" {
+resource "azurerm_network_interface" "nic_jb" {
     name                    = "tc-nic-${var.jumpboxservername}"
     location                = azurerm_resource_group.rg.location
     resource_group_name     = azurerm_resource_group.rg.name
@@ -90,7 +90,7 @@ resource "azurerm_virtual_machine" "vm" {
     name                    = var.webservername
     location                = azurerm_resource_group.rg.location
     resource_group_name     = azurerm_resource_group.rg.name
-    network_interface_ids   = [azurerm_network_interface.nic.id]
+    network_interface_ids   = [azurerm_network_interface.nic_ws.id]
     vm_size                 = "Standard_B2ms"
 
     storage_os_disk {
@@ -122,7 +122,7 @@ resource "azurerm_virtual_machine" "vm" {
     name                    = var.jumpboxservername
     location                = azurerm_resource_group.rg.location
     resource_group_name     = azurerm_resource_group.rg.name
-    network_interface_ids   = [azurerm_network_interface.nic.id]
+    network_interface_ids   = [azurerm_network_interface.nic_jb.id]
     vm_size                 = "Standard_B2ms"
 
     storage_os_disk {

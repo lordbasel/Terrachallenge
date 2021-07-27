@@ -42,7 +42,7 @@ variable "vnet_address_space" {
 }
 
 variable "managed_disk_type" {
-    type = map
+    type = string
     description = "Managed disk type"
     default = "Standard_LRS"
 }
