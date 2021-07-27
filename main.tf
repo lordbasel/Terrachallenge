@@ -3,14 +3,14 @@ provider "azurerm" {
 
 #Create Resource Group
 resource "azurerm_resource_group" "rg" {
-    name                    = "tcrg-${var.system}"
+    name                    = "rg-tc-${var.system}"
     location                = var.location
     tags                    = var.default_tag
 }
 
 #Create VNet
 resource "azurerm_virtual_network" "vnet" {
-    name                    = "tc-vnet-${var.location}"
+    name                    = "vnet-tc-${var.location}"
     address_space           = var.vnet_address_space
     location                = azurerm_resource_group.rg.location
     resource_group_name     = azurerm_resource_group.rg.name
@@ -19,7 +19,7 @@ resource "azurerm_virtual_network" "vnet" {
 
 #Create Subnet
 resource "azurerm_subnet" "subnet" {
-    name                    = "tc-snet-${var.location}"
+    name                    = "snet-tc-${var.location}"
     resource_group_name     = azurerm_resource_group.rg.name
     virtual_network_name    = azurerm_virtual_network.vnet.name
     address_prefix          = "10.0.100.0/24"
@@ -28,7 +28,7 @@ resource "azurerm_subnet" "subnet" {
 
 #Create Public IP (Webserver)
 resource "azurerm_public_ip" "publicip" {
-    name                    = "tc-pip-${var.webservername}-${var.location}"
+    name                    = "pip-tc-${var.webservername}-${var.location}"
     location                = azurerm_resource_group.rg.location
     resource_group_name     = azurerm_resource_group.rg.name
     allocation_method       = "Static"
@@ -37,7 +37,7 @@ resource "azurerm_public_ip" "publicip" {
 
 #Create NSG
 resource "azurerm_network_security_group" "nsg" {
-    name = "nsg-http-${var.system}"
+    name                    = "nsg-http-${var.system}"
     location                = azurerm_resource_group.rg.location
     resource_group_name     = azurerm_resource_group.rg.name
 
@@ -56,14 +56,14 @@ resource "azurerm_network_security_group" "nsg" {
 
 #Create NIC (Webserver)
 resource "azurerm_network_interface" "nic_ws" {
-    name                    = "tc-nic-${var.webservername}"
+    name                    = "nic-tc-${var.webservername}"
     location                = azurerm_resource_group.rg.location
     resource_group_name     = azurerm_resource_group.rg.name
     network_security_group_id = azurerm_network_security_group.nsg.id
     tags                    = var.default_tag
 
     ip_configuration {
-      name                              = "tc-nic-cfg-${var.webservername}"
+      name                              = "nic-cfg-${var.webservername}"
       subnet_id                         = azurerm_subnet.subnet.id
       private_ip_address_allocation     = "dynamic"
       public_ip_address_id              = azurerm_public_ip.publicip.id
@@ -72,14 +72,14 @@ resource "azurerm_network_interface" "nic_ws" {
 
 #Create NIC (Jumpbox)
 resource "azurerm_network_interface" "nic_jb" {
-    name                    = "tc-nic-${var.jumpboxservername}"
+    name                    = "nic-tc-${var.jumpboxservername}"
     location                = azurerm_resource_group.rg.location
     resource_group_name     = azurerm_resource_group.rg.name
     network_security_group_id = azurerm_network_security_group.nsg.id
     tags                    = var.default_tag
 
     ip_configuration {
-      name                              = "tc-nic-cfg-${var.jumpboxservername}"
+      name                              = "nic-cfg-${var.jumpboxservername}"
       subnet_id                         = azurerm_subnet.subnet.id
       private_ip_address_allocation     = "dynamic"
     }
@@ -94,7 +94,7 @@ resource "azurerm_virtual_machine" "vm" {
     vm_size                 = "Standard_B2ms"
 
     storage_os_disk {
-      name                              = "tc-dsk-${var.webservername}-os"
+      name                              = "dsk-tc-${var.webservername}-os"
       caching                           = "ReadWrite"
       create_option                     = "FromImage"
       managed_disk_type                 = lookup(var.managed_disk_type, var.location, "Standard_LRS")
@@ -126,7 +126,7 @@ resource "azurerm_virtual_machine" "vm" {
     vm_size                 = "Standard_B2ms"
 
     storage_os_disk {
-      name                              = "tc-dsk-${var.jumpboxservername}-os"
+      name                              = "dsk-tc-${var.jumpboxservername}-os"
       caching                           = "ReadWrite"
       create_option                     = "FromImage"
       managed_disk_type                 = lookup(var.managed_disk_type, var.location, "Standard_LRS")
