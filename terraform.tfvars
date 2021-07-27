@@ -1,5 +1,5 @@
 system = "terrachallenge"
-default_tags = "DeployedBy: Terraform"
+default_tag = "DeployedBy: Terraform"
 webservername = "webserver01"
 jumpboxservername = "jumpbox01"
 location = "eastus"
