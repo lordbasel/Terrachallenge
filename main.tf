@@ -198,3 +198,7 @@ resource "azurerm_virtual_machine" "vm-jb" {
     disable_password_authentication = false
   }
 }
+
+output "webserver_pip" {
+  value = azurerm_public_ip.publicip
+}
