@@ -42,9 +42,6 @@ resource "azurerm_subnet" "subnet" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefix       = "10.0.100.0/24"
-  tags = {
-    DeployedBy = var.default_tag
-  }
 }
 
 #Create Public IP (Webserver)
@@ -72,7 +69,7 @@ resource "azurerm_network_security_group" "nsg" {
     priority                   = 1001
     direction                  = "Inbound"
     access                     = "Allow"
-    protcol                    = "Tcp"
+    protocol                    = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
     source_address_prefix      = "*"
@@ -80,12 +77,17 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
+#Associate NSG
+resource "azurerm_subnet_network_security_group_association" "nsgasc" {
+  subnet_id = azurerm_subnet.subnet.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+} 
+
 #Create NIC (Webserver)
 resource "azurerm_network_interface" "nic_ws" {
   name                      = "nic-tc-${var.webservername}"
   location                  = azurerm_resource_group.rg.location
   resource_group_name       = azurerm_resource_group.rg.name
-  network_security_group_id = azurerm_network_security_group.nsg.id
   tags = {
     DeployedBy = var.default_tag
   }
@@ -103,8 +105,7 @@ resource "azurerm_network_interface" "nic_jb" {
   name                      = "nic-tc-${var.jumpboxservername}"
   location                  = azurerm_resource_group.rg.location
   resource_group_name       = azurerm_resource_group.rg.name
-  network_security_group_id = azurerm_network_security_group.nsg.id
-  tags = {
+    tags = {
     DeployedBy = var.default_tag
   }
 
@@ -197,8 +198,4 @@ resource "azurerm_virtual_machine" "vm-jb" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
-}
-
-output "webserver_pip" {
-  value = azurerm_public_ip.publicip
 }
