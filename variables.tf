@@ -1,3 +1,22 @@
+variable "az_subscription_id" {
+  type        = string
+  description = "Azure subscription ID"
+}
+
+variable "az_client_id" {
+  type        = string
+  description = "Azure client ID"
+}
+
+variable "az_secret" {
+  type        = string
+  description = "Azure secret"
+}
+
+variable "az_tenant" {
+  type        = string
+  description = "Azure tenant ID"
+}
 variable "system" {
   type        = string
   description = "Name of the environment"
