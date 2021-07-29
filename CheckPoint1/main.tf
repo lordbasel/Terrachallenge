@@ -16,13 +16,17 @@ provider "azurerm" {
   tenant_id       = var.az_tenant
 }
 
+#Call RG Module
+module "rgm" {
+  source   = "./modules/rg"
+  location = var.location
+}
+
 #Create Resource Group
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-tc-${var.system}"
-  location = var.location
-  tags = {
-    DeployedBy = var.default_tag
-  }
+  name     = module.rgm.rg_name
+  location = module.rgm.rg_location
+  tags     = module.rgm.rg_tag
 }
 
 #Create VNet
@@ -158,7 +162,7 @@ resource "azurerm_virtual_machine" "vm-ws" {
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = var.managed_disk_type
-    disk_size_gb = "128"
+    disk_size_gb      = "128"
   }
 
   storage_image_reference {
@@ -187,10 +191,10 @@ resource "azurerm_virtual_machine" "vm-ws" {
       "exit"
     ]
     connection {
-    type  = "ssh"
-    host = azurerm_public_ip.publicip.ip_address
-    user = var.admin_username
-    password = var.admin_password
+      type     = "ssh"
+      host     = azurerm_public_ip.publicip.ip_address
+      user     = var.admin_username
+      password = var.admin_password
     }
   }
 }
