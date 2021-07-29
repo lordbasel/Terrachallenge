@@ -18,8 +18,12 @@ provider "azurerm" {
 
 #Call RG Module
 module "rgm" {
-  source   = "./modules/rg"
-  location = var.location
+  source             = "./modules/rg"
+  location           = var.location
+  az_subscription_id = var.az_subscription_id
+  az_client_id       = var.az_client_id
+  az_secret          = var.az_secret
+  az-az_tenant       = var.az_tenant
 }
 
 #Create Resource Group
