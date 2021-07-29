@@ -36,12 +36,28 @@ resource "azurerm_virtual_network" "vnet" {
   }
 }
 
-#Create Subnet
-resource "azurerm_subnet" "subnet" {
-  name                 = "snet-tc-${var.location}"
+#Create Web Subnet
+resource "azurerm_subnet" "subnet_web" {
+  name                 = "snet-web-${var.location}"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefix       = "10.0.100.0/24"
+  address_prefixes     = [var.web_address_prefix]
+}
+
+#Create Jumpbox Subnet
+resource "azurerm_subnet" "subnet_jb" {
+  name                 = "snet-jb-${var.location}"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = [var.jb_address_prefix]
+}
+
+#Create Bastion Subnet
+resource "azurerm_subnet" "subnet_bastion" {
+  name                 = "snet-bastion-${var.location}"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = [var.bastion_address_prefix]
 }
 
 #Create Public IP (Webserver)
@@ -63,15 +79,25 @@ resource "azurerm_network_security_group" "nsg" {
   tags = {
     DeployedBy = var.default_tag
   }
-
   security_rule {
     name                       = "HTTP"
     priority                   = 1001
     direction                  = "Inbound"
     access                     = "Allow"
-    protocol                    = "Tcp"
+    protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -79,22 +105,22 @@ resource "azurerm_network_security_group" "nsg" {
 
 #Associate NSG
 resource "azurerm_subnet_network_security_group_association" "nsgasc" {
-  subnet_id = azurerm_subnet.subnet.id
+  subnet_id                 = azurerm_subnet.subnet_web.id
   network_security_group_id = azurerm_network_security_group.nsg.id
-} 
+}
 
 #Create NIC (Webserver)
 resource "azurerm_network_interface" "nic_ws" {
-  name                      = "nic-tc-${var.webservername}"
-  location                  = azurerm_resource_group.rg.location
-  resource_group_name       = azurerm_resource_group.rg.name
+  name                = "nic-tc-${var.webservername}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   tags = {
     DeployedBy = var.default_tag
   }
 
   ip_configuration {
     name                          = "nic-cfg-${var.webservername}"
-    subnet_id                     = azurerm_subnet.subnet.id
+    subnet_id                     = azurerm_subnet.subnet_web.id
     private_ip_address_allocation = "dynamic"
     public_ip_address_id          = azurerm_public_ip.publicip.id
   }
@@ -102,16 +128,16 @@ resource "azurerm_network_interface" "nic_ws" {
 
 #Create NIC (Jumpbox)
 resource "azurerm_network_interface" "nic_jb" {
-  name                      = "nic-tc-${var.jumpboxservername}"
-  location                  = azurerm_resource_group.rg.location
-  resource_group_name       = azurerm_resource_group.rg.name
-    tags = {
+  name                = "nic-tc-${var.jumpboxservername}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  tags = {
     DeployedBy = var.default_tag
   }
 
   ip_configuration {
     name                          = "nic-cfg-${var.jumpboxservername}"
-    subnet_id                     = azurerm_subnet.subnet.id
+    subnet_id                     = azurerm_subnet.subnet_jb.id
     private_ip_address_allocation = "dynamic"
   }
 }
@@ -131,7 +157,8 @@ resource "azurerm_virtual_machine" "vm-ws" {
     name              = "dsk-tc-${var.webservername}-os"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = lookup(var.managed_disk_type, var.location, "Standard_LRS")
+    managed_disk_type = var.managed_disk_type
+    disk_size_gb = "128"
   }
 
   storage_image_reference {
@@ -151,16 +178,20 @@ resource "azurerm_virtual_machine" "vm-ws" {
     disable_password_authentication = false
   }
 
-  provisioner "file" {
-    source      = "ubuntu-init.sh"
-    destination = "/tmp/ubuntu-init.sh"
-  }
-
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/ubuntu-init.sh",
-      "/tmp/ubuntu-init.sh args",
+      "sudo apt-get update",
+      "sudo apt-get upgrade -y",
+      "sudo apt install nginx -y",
+      "sudo systemctl start nginx",
+      "exit"
     ]
+    connection {
+    type  = "ssh"
+    host = azurerm_public_ip.publicip.ip_address
+    user = var.admin_username
+    password = var.admin_password
+    }
   }
 }
 
@@ -179,7 +210,7 @@ resource "azurerm_virtual_machine" "vm-jb" {
     name              = "dsk-tc-${var.jumpboxservername}-os"
     caching           = "ReadWrite"
     create_option     = "FromImage"
-    managed_disk_type = lookup(var.managed_disk_type, var.location, "Standard_LRS")
+    managed_disk_type = var.managed_disk_type
   }
 
   storage_image_reference {

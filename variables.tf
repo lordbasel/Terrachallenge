@@ -60,6 +60,23 @@ variable "vnet_address_space" {
   default     = ["10.0.100.0/24"]
 }
 
+variable "web_address_prefix" {
+  type        = string
+  description = "Address prefix"
+  default     = "10.0.100.0/24"
+}
+
+variable "jb_address_prefix" {
+  type        = string
+  description = "Address prefix"
+  default     = "10.0.110.0/24"
+}
+
+variable "bastion_address_prefix" {
+  type        = string
+  description = "Address prefix"
+  default     = "10.0.120.0/24"
+}
 variable "managed_disk_type" {
   type        = string
   description = "Managed disk type"
