@@ -17,13 +17,13 @@ provider "azurerm" {
 }
 
 #Call RG Module
-module "rgm" {
+module "rg" {
   source             = "./modules/rg"
   location           = var.location
   az_subscription_id = var.az_subscription_id
   az_client_id       = var.az_client_id
   az_secret          = var.az_secret
-  az-az_tenant       = var.az_tenant
+  az_tenant          = var.az_tenant
 }
 
 #Create Resource Group
@@ -37,8 +37,8 @@ resource "azurerm_resource_group" "rg" {
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-tc-${var.location}"
   address_space       = var.vnet_address_space
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = module.rg.rg_location
+  resource_group_name = module.rg.rg_name
   tags = {
     DeployedBy = var.default_tag
   }
@@ -47,7 +47,7 @@ resource "azurerm_virtual_network" "vnet" {
 #Create Web Subnet
 resource "azurerm_subnet" "subnet_web" {
   name                 = "snet-web-${var.location}"
-  resource_group_name  = azurerm_resource_group.rg.name
+  resource_group_name  = module.rg.rg_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.web_address_prefix]
 }
@@ -55,7 +55,7 @@ resource "azurerm_subnet" "subnet_web" {
 #Create Jumpbox Subnet
 resource "azurerm_subnet" "subnet_jb" {
   name                 = "snet-jb-${var.location}"
-  resource_group_name  = azurerm_resource_group.rg.name
+  resource_group_name  = module.rg.rg_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.jb_address_prefix]
 }
@@ -63,7 +63,7 @@ resource "azurerm_subnet" "subnet_jb" {
 #Create Bastion Subnet
 resource "azurerm_subnet" "subnet_bastion" {
   name                 = "snet-bastion-${var.location}"
-  resource_group_name  = azurerm_resource_group.rg.name
+  resource_group_name  = module.rg.rg_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.bastion_address_prefix]
 }
@@ -71,8 +71,8 @@ resource "azurerm_subnet" "subnet_bastion" {
 #Create Public IP (Webserver)
 resource "azurerm_public_ip" "publicip" {
   name                = "pip-tc-${var.webservername}-${var.location}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = module.rg.rg_location
+  resource_group_name = module.rg.rg_name
   allocation_method   = "Static"
   tags = {
     DeployedBy = var.default_tag
@@ -82,8 +82,8 @@ resource "azurerm_public_ip" "publicip" {
 #Create NSG
 resource "azurerm_network_security_group" "nsg" {
   name                = "nsg-http-${var.system}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = module.rg.rg_location
+  resource_group_name = module.rg.rg_name
   tags = {
     DeployedBy = var.default_tag
   }
@@ -120,8 +120,8 @@ resource "azurerm_subnet_network_security_group_association" "nsgasc" {
 #Create NIC (Webserver)
 resource "azurerm_network_interface" "nic_ws" {
   name                = "nic-tc-${var.webservername}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = module.rg.rg_location
+  resource_group_name = module.rg.rg_name
   tags = {
     DeployedBy = var.default_tag
   }
@@ -137,8 +137,8 @@ resource "azurerm_network_interface" "nic_ws" {
 #Create NIC (Jumpbox)
 resource "azurerm_network_interface" "nic_jb" {
   name                = "nic-tc-${var.jumpboxservername}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
+  location            = module.rg.rg_location
+  resource_group_name = module.rg.rg_name
   tags = {
     DeployedBy = var.default_tag
   }
@@ -153,8 +153,8 @@ resource "azurerm_network_interface" "nic_jb" {
 #Create VM (Webserver)
 resource "azurerm_virtual_machine" "vm-ws" {
   name                  = var.webservername
-  location              = azurerm_resource_group.rg.location
-  resource_group_name   = azurerm_resource_group.rg.name
+  location              = module.rg.rg_location
+  resource_group_name   = module.rg.rg_name
   network_interface_ids = [azurerm_network_interface.nic_ws.id]
   vm_size               = "Standard_B2ms"
   tags = {
@@ -206,8 +206,8 @@ resource "azurerm_virtual_machine" "vm-ws" {
 #Create VM (Jumpbox)
 resource "azurerm_virtual_machine" "vm-jb" {
   name                  = var.jumpboxservername
-  location              = azurerm_resource_group.rg.location
-  resource_group_name   = azurerm_resource_group.rg.name
+  location              = module.rg.rg_location
+  resource_group_name   = module.rg.rg_name
   network_interface_ids = [azurerm_network_interface.nic_jb.id]
   vm_size               = "Standard_B2ms"
   tags = {
