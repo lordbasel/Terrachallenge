@@ -20,10 +20,16 @@ provider "azurerm" {
 module "rg" {
   source             = "./modules/rg"
   location           = var.location
-  az_subscription_id = var.az_subscription_id
-  az_client_id       = var.az_client_id
-  az_secret          = var.az_secret
-  az_tenant          = var.az_tenant
+  name =  var.resource_group_name
+}
+
+#Call Bastion Module
+module "bastion" {
+  source             = "./modules/bastion"
+  location           = module.rg.rg_location
+  bastionhost_name =  var.bastionhost_name
+  bastion_subnet =  azurerm_subnet.subnet_bastion.id
+  resource_group_name = module.rg.rg_name
 }
 
 #Create VNet

@@ -89,6 +89,18 @@ variable "vm_size" {
   default     = "Standard_B2ms"
 }
 
+variable "bastionhost_name" {
+  type  = string
+  description = "Bastion Host Name"
+  default = "Bastion" 
+}
+
+variable "resource_group_name"{
+  type= string
+  description = "rg"
+  default = "rg-tc=terraform"
+  }
+
 variable "os" {
   type = object({
     publisher = string
