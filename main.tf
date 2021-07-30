@@ -61,7 +61,7 @@ resource "azurerm_subnet" "subnet_jb" {
 
 #Create Bastion Subnet
 resource "azurerm_subnet" "subnet_bastion" {
-  name                 = "snet-bastion-${var.location}"
+  name                 = "AzureBastionSubnet"
   resource_group_name  = module.rg.rg_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.bastion_address_prefix]

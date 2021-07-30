@@ -98,7 +98,7 @@ variable "bastionhost_name" {
 variable "resource_group_name" {
   type        = string
   description = "rg"
-  default     = "rg-tc=terraform"
+  default     = "rg-tc-terraform"
 }
 
 variable "os" {
