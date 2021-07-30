@@ -110,7 +110,7 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-#Associate NSG
+#Associate NSG Web
 resource "azurerm_subnet_network_security_group_association" "nsgasc" {
   subnet_id                 = azurerm_subnet.subnet_web.id
   network_security_group_id = azurerm_network_security_group.nsg.id

@@ -7,3 +7,8 @@ output "bastion_pip" {
  value = module.bastion.bastion_pip
  description = "Bastion Host PIP"
 }
+
+output "jumpbox_ip" {
+  description = "Jumpbox1 ip address"
+  value = azurerm_network_interface.nic_jb.private_ip_address
+}
