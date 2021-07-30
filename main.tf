@@ -24,14 +24,6 @@ module "rg" {
   az_client_id       = var.az_client_id
   az_secret          = var.az_secret
   az_tenant          = var.az_tenant
-}
-
-#Create Resource Group
-resource "azurerm_resource_group" "rg" {
-  name     = module.rgm.rg_name
-  location = module.rgm.rg_location
-  tags     = module.rgm.rg_tag
-}
 
 #Create VNet
 resource "azurerm_virtual_network" "vnet" {
