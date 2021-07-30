@@ -24,6 +24,7 @@ module "rg" {
   az_client_id       = var.az_client_id
   az_secret          = var.az_secret
   az_tenant          = var.az_tenant
+  
 }
 
 #Create VNet
