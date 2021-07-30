@@ -90,16 +90,16 @@ variable "vm_size" {
 }
 
 variable "bastionhost_name" {
-  type  = string
+  type        = string
   description = "Bastion Host Name"
-  default = "Bastion" 
+  default     = "Bastion"
 }
 
-variable "resource_group_name"{
-  type= string
+variable "resource_group_name" {
+  type        = string
   description = "rg"
-  default = "rg-tc=terraform"
-  }
+  default     = "rg-tc=terraform"
+}
 
 variable "os" {
   type = object({

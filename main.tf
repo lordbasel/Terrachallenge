@@ -18,17 +18,17 @@ provider "azurerm" {
 
 #Call RG Module
 module "rg" {
-  source             = "./modules/rg"
-  location           = var.location
-  name =  var.resource_group_name
+  source   = "./modules/rg"
+  location = var.location
+  name     = var.resource_group_name
 }
 
 #Call Bastion Module
 module "bastion" {
-  source             = "./modules/bastion"
-  location           = module.rg.rg_location
-  bastionhost_name =  var.bastionhost_name
-  bastion_subnet =  azurerm_subnet.subnet_bastion.id
+  source              = "./modules/bastion"
+  location            = module.rg.rg_location
+  bastionhost_name    = var.bastionhost_name
+  bastion_subnet      = azurerm_subnet.subnet_bastion.id
   resource_group_name = module.rg.rg_name
 }
 

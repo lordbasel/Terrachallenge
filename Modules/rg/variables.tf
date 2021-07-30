@@ -6,7 +6,7 @@ variable "location" {
 variable "name" {
   type        = string
   description = "RG Name"
-  }
+}
 variable "default_tag" {
   type        = string
   description = "Default tags"
