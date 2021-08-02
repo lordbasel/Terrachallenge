@@ -18,12 +18,18 @@ provider "azurerm" {
 
 #Call RG Module
 module "rg" {
-  source             = "./modules/rg"
-  location           = var.location
-  az_subscription_id = var.az_subscription_id
-  az_client_id       = var.az_client_id
-  az_secret          = var.az_secret
-  az_tenant          = var.az_tenant
+  source   = "./modules/rg"
+  location = var.location
+  name     = var.resource_group_name
+}
+
+#Call Bastion Module
+module "bastion" {
+  source              = "./modules/bastion"
+  location            = module.rg.rg_location
+  bastionhost_name    = var.bastionhost_name
+  bastion_subnet      = azurerm_subnet.subnet_bastion.id
+  resource_group_name = module.rg.rg_name
 }
 
 #Create VNet
@@ -55,7 +61,7 @@ resource "azurerm_subnet" "subnet_jb" {
 
 #Create Bastion Subnet
 resource "azurerm_subnet" "subnet_bastion" {
-  name                 = "snet-bastion-${var.location}"
+  name                 = "AzureBastionSubnet"
   resource_group_name  = module.rg.rg_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.bastion_address_prefix]
@@ -104,7 +110,7 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-#Associate NSG
+#Associate NSG Web
 resource "azurerm_subnet_network_security_group_association" "nsgasc" {
   subnet_id                 = azurerm_subnet.subnet_web.id
   network_security_group_id = azurerm_network_security_group.nsg.id
