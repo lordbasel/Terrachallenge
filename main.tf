@@ -32,6 +32,15 @@ module "bastion" {
   resource_group_name = module.rg.rg_name
 }
 
+#Call Load Balancer Module
+module "load_balancer" {
+  source              = "./modules/load_balancer"
+  location            = module.rg.rg_location
+  lb_name             = var.lb_name
+  resource_group_name = module.rg.rg_name
+  lb_pool_assoc       = azurerm_network_interface.nic_ws.id
+}
+
 #Create VNet
 resource "azurerm_virtual_network" "vnet" {
   name                = "vnet-tc-${var.location}"
@@ -73,6 +82,7 @@ resource "azurerm_public_ip" "publicip" {
   location            = module.rg.rg_location
   resource_group_name = module.rg.rg_name
   allocation_method   = "Static"
+  sku                 = "Standard"
   tags = {
     DeployedBy = var.default_tag
   }
@@ -87,7 +97,7 @@ resource "azurerm_network_security_group" "nsg" {
     DeployedBy = var.default_tag
   }
   security_rule {
-    name                       = "HTTP"
+    name                       = "HTTPIn"
     priority                   = 1001
     direction                  = "Inbound"
     access                     = "Allow"
@@ -126,7 +136,7 @@ resource "azurerm_network_interface" "nic_ws" {
   }
 
   ip_configuration {
-    name                          = "nic-cfg-${var.webservername}"
+    name                          = "Default"
     subnet_id                     = azurerm_subnet.subnet_web.id
     private_ip_address_allocation = "dynamic"
     public_ip_address_id          = azurerm_public_ip.publicip.id
