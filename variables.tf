@@ -95,6 +95,12 @@ variable "bastionhost_name" {
   default     = "Bastion"
 }
 
+variable "lb_name" {
+  type        = string
+  description = "Load Balancer name"
+  default     = "Load_Balancer"
+}
+
 variable "resource_group_name" {
   type        = string
   description = "rg"
