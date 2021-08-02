@@ -53,5 +53,5 @@ resource "azurerm_lb_probe" "lb_probe" {
   name                = "LBHealthProbe"
   protocol            = "Http"
   port                = 80
-  request_path        = "Http"
+  request_path        = "/"
 }
