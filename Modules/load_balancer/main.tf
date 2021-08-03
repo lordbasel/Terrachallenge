@@ -26,12 +26,12 @@ resource "azurerm_lb_backend_address_pool" "lb_pool" {
   name            = "LBBackendPool"
 }
 
-#Create Backend Pool Association
-resource "azurerm_network_interface_backend_address_pool_association" "lb_pool_assoc" {
-  network_interface_id    = var.lb_pool_assoc
-  ip_configuration_name   = "Default"
-  backend_address_pool_id = azurerm_lb_backend_address_pool.lb_pool.id
-}
+# #Create Backend Pool Association
+# resource "azurerm_network_interface_backend_address_pool_association" "lb_pool_assoc" {
+#   network_interface_id    = var.nic_id
+#   ip_configuration_name   = "Default"
+#   backend_address_pool_id = azurerm_lb_backend_address_pool.lb_pool.id
+# }
 
 #Create LB Rule
 resource "azurerm_lb_rule" "lb_rule" {
