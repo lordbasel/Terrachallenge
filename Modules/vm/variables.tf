@@ -49,8 +49,6 @@ variable "os" {
   })
 }
 
-
-
 variable "managed_disk_type" {
   type        = string
   description = "Managed disk type"
@@ -65,4 +63,9 @@ variable "admin_username" {
 variable "admin_password" {
   type        = string
   description = "Admin password"
+}
+
+variable "lb_backend" {
+  type        = string
+  description = "Load Balancer backend address ID"
 }

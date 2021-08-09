@@ -33,6 +33,7 @@ module "vm" {
   admin_username      = var.admin_username
   admin_password      = var.admin_password
   aset_id             = module.aset.aset_id
+  lb_backend          = module.load_balancer.lb_backend
   os = {
     publisher = var.os.publisher
     offer     = var.os.offer
@@ -60,10 +61,10 @@ module "bastion" {
 #Call Load Balancer Module
 module "load_balancer" {
   source              = "./modules/load_balancer"
-  count               = var.vm_count
   location            = module.rg.rg_location
   lb_name             = var.lb_name
   resource_group_name = module.rg.rg_name
+  #nic_id              = module.vm.nic_id
 }
 
 #Create VNet

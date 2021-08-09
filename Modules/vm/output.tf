@@ -1,5 +1,6 @@
 output "nic_id" {
-  value       = azurerm_network_interface.nic_ws[*].id
+  #value       = { for nic in azurerm_network_interface.nic : nic.name => nic.id }
+  value       = azurerm_network_interface.nic.id
   description = "Webserver NIC ID"
 }
 

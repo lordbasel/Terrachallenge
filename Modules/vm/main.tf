@@ -7,9 +7,9 @@ resource "azurerm_subnet" "subnet_web" {
 }
 
 #Create NIC (Webserver)
-resource "azurerm_network_interface" "nic_ws" {
-  count               = var.vm_count
-  name                = "${var.webserver_name}-${count.index}.nic"
+resource "azurerm_network_interface" "nic" {
+  #count               = var.vm_count
+  name                = "${var.webserver_name}-nic"
   location            = var.location
   resource_group_name = var.resource_group_name
   tags = {
@@ -29,7 +29,7 @@ resource "azurerm_virtual_machine" "vm-ws" {
   name                  = "${var.webserver_name}-${count.index}"
   location              = var.location
   resource_group_name   = var.resource_group_name
-  network_interface_ids = [element(azurerm_network_interface.nic_ws.*.id, count.index)]
+  network_interface_ids = [element(azurerm_network_interface.nic.*.id, count.index)]
   vm_size               = "Standard_B2ms"
   availability_set_id   = var.aset_id
   tags = {
@@ -78,3 +78,10 @@ resource "azurerm_virtual_machine_extension" "ws_ext" {
   SETTINGS
 }
 
+# #Create Backend Pool Association
+resource "azurerm_network_interface_backend_address_pool_association" "lb_pool_assoc" {
+  count                   = var.vm_count
+  network_interface_id    = element(azurerm_network_interface.nic.*.id, count.index)
+  ip_configuration_name   = "Default"
+  backend_address_pool_id = var.lb_backend
+}
