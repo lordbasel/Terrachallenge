@@ -115,3 +115,9 @@ variable "os" {
     version   = string
   })
 }
+
+variable "vm_count" {
+  type        = number
+  description = "Count of VMs to build"
+  default     = 2
+}

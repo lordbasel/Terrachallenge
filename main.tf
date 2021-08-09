@@ -23,6 +23,32 @@ module "rg" {
   name     = var.resource_group_name
 }
 
+#Call VM Module
+module "vm" {
+  source              = "./modules/vm"
+  vm_count            = var.vm_count
+  location            = module.rg.rg_location
+  resource_group_name = module.rg.rg_name
+  vnet_name           = azurerm_virtual_network.vnet.name
+  admin_username      = var.admin_username
+  admin_password      = var.admin_password
+  aset_id             = module.aset.aset_id
+  lb_backend          = module.load_balancer.lb_backend
+  os = {
+    publisher = var.os.publisher
+    offer     = var.os.offer
+    sku       = var.os.sku
+    version   = var.os.version
+  }
+}
+
+#Call ASET Module
+module "aset" {
+  source              = "./modules/aset"
+  resource_group_name = module.rg.rg_name
+  location            = module.rg.rg_location
+}
+
 #Call Bastion Module
 module "bastion" {
   source              = "./modules/bastion"
@@ -38,7 +64,7 @@ module "load_balancer" {
   location            = module.rg.rg_location
   lb_name             = var.lb_name
   resource_group_name = module.rg.rg_name
-  lb_pool_assoc       = azurerm_network_interface.nic_ws.id
+  #nic_id              = module.vm.nic_id
 }
 
 #Create VNet
@@ -50,14 +76,6 @@ resource "azurerm_virtual_network" "vnet" {
   tags = {
     DeployedBy = var.default_tag
   }
-}
-
-#Create Web Subnet
-resource "azurerm_subnet" "subnet_web" {
-  name                 = "snet-web-${var.location}"
-  resource_group_name  = module.rg.rg_name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = [var.web_address_prefix]
 }
 
 #Create Jumpbox Subnet
@@ -74,18 +92,6 @@ resource "azurerm_subnet" "subnet_bastion" {
   resource_group_name  = module.rg.rg_name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.bastion_address_prefix]
-}
-
-#Create Public IP (Webserver)
-resource "azurerm_public_ip" "publicip" {
-  name                = "pip-tc-${var.webservername}-${var.location}"
-  location            = module.rg.rg_location
-  resource_group_name = module.rg.rg_name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  tags = {
-    DeployedBy = var.default_tag
-  }
 }
 
 #Create NSG
@@ -122,25 +128,8 @@ resource "azurerm_network_security_group" "nsg" {
 
 #Associate NSG Web
 resource "azurerm_subnet_network_security_group_association" "nsgasc" {
-  subnet_id                 = azurerm_subnet.subnet_web.id
+  subnet_id                 = module.vm.subnet_web
   network_security_group_id = azurerm_network_security_group.nsg.id
-}
-
-#Create NIC (Webserver)
-resource "azurerm_network_interface" "nic_ws" {
-  name                = "nic-tc-${var.webservername}"
-  location            = module.rg.rg_location
-  resource_group_name = module.rg.rg_name
-  tags = {
-    DeployedBy = var.default_tag
-  }
-
-  ip_configuration {
-    name                          = "Default"
-    subnet_id                     = azurerm_subnet.subnet_web.id
-    private_ip_address_allocation = "dynamic"
-    public_ip_address_id          = azurerm_public_ip.publicip.id
-  }
 }
 
 #Create NIC (Jumpbox)
@@ -156,59 +145,6 @@ resource "azurerm_network_interface" "nic_jb" {
     name                          = "nic-cfg-${var.jumpboxservername}"
     subnet_id                     = azurerm_subnet.subnet_jb.id
     private_ip_address_allocation = "dynamic"
-  }
-}
-
-#Create VM (Webserver)
-resource "azurerm_virtual_machine" "vm-ws" {
-  name                  = var.webservername
-  location              = module.rg.rg_location
-  resource_group_name   = module.rg.rg_name
-  network_interface_ids = [azurerm_network_interface.nic_ws.id]
-  vm_size               = "Standard_B2ms"
-  tags = {
-    DeployedBy = var.default_tag
-  }
-
-  storage_os_disk {
-    name              = "dsk-tc-${var.webservername}-os"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = var.managed_disk_type
-    disk_size_gb      = "128"
-  }
-
-  storage_image_reference {
-    publisher = var.os.publisher
-    offer     = var.os.offer
-    sku       = var.os.sku
-    version   = var.os.version
-  }
-
-  os_profile {
-    computer_name  = var.webservername
-    admin_username = var.admin_username
-    admin_password = var.admin_password
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo apt-get update",
-      "sudo apt-get upgrade -y",
-      "sudo apt install nginx -y",
-      "sudo systemctl start nginx",
-      "exit"
-    ]
-    connection {
-      type     = "ssh"
-      host     = azurerm_public_ip.publicip.ip_address
-      user     = var.admin_username
-      password = var.admin_password
-    }
   }
 }
 
