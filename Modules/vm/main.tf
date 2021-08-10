@@ -8,8 +8,8 @@ resource "azurerm_subnet" "subnet_web" {
 
 #Create NIC (Webserver)
 resource "azurerm_network_interface" "nic" {
-  #count               = var.vm_count
-  name                = "${var.webserver_name}-nic"
+  count               = var.vm_count
+  name                = "${var.webserver_name}-${count.index}-nic"
   location            = var.location
   resource_group_name = var.resource_group_name
   tags = {

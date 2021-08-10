@@ -31,7 +31,7 @@ module "vm" {
   resource_group_name = module.rg.rg_name
   vnet_name           = azurerm_virtual_network.vnet.name
   admin_username      = var.admin_username
-  admin_password      = var.admin_password
+  admin_password      = module.keyvault.web_password
   aset_id             = module.aset.aset_id
   lb_backend          = module.load_balancer.lb_backend
   os = {
@@ -65,6 +65,15 @@ module "load_balancer" {
   lb_name             = var.lb_name
   resource_group_name = module.rg.rg_name
   #nic_id              = module.vm.nic_id
+}
+
+#Call Key Vault Module
+module "keyvault" {
+  source              = "./modules/keyvault"
+  location            = module.rg.rg_location
+  resource_group_name = module.rg.rg_name
+  jumpboxservername   = var.jumpboxservername
+  webservername       = var.webservername
 }
 
 #Create VNet
@@ -176,7 +185,7 @@ resource "azurerm_virtual_machine" "vm-jb" {
   os_profile {
     computer_name  = var.jumpboxservername
     admin_username = var.admin_username
-    admin_password = var.admin_password
+    admin_password = module.keyvault.jb_password
   }
 
   os_profile_linux_config {
