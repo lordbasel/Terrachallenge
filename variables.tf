@@ -49,11 +49,6 @@ variable "admin_username" {
   description = "Admin username"
 }
 
-variable "admin_password" {
-  type        = string
-  description = "Admin password"
-}
-
 variable "vnet_address_space" {
   type        = list(any)
   description = "Virtual network address space"
